@@ -115,8 +115,12 @@ async fn main() {
     let users = Users::default();
     let states = States::default();
 
+    let arc_users = users.clone();
+    let arc_states = states.clone();
     let users = warp::any().map(move || users.clone());
     let states = warp::any().map(move || states.clone());
+
+    tokio::spawn(async move { update_loop(arc_users, arc_states).await });
 
     let game = warp::path("game")
         .and(warp::ws())
@@ -129,6 +133,31 @@ async fn main() {
     let status = warp::path!("status").map(move || warp::reply::html("hello"));
     let routes = status.or(game);
     warp::serve(routes).run(([0, 0, 0, 0], 3030)).await;
+}
+
+async fn update_loop(users: Users, states: States) {
+    loop {
+        let states: Vec<RemoteState> = states.read().await.values().cloned().collect();
+
+        if !states.is_empty() {
+            for (&uid, tx) in users.read().await.iter() {
+                let states = states
+                    .iter()
+                    .filter_map(|state| {
+                        if state.id == uid {
+                            None
+                        } else {
+                            Some(state.clone())
+                        }
+                    })
+                    .collect();
+
+                let states = ServerMessage::Update(states);
+                send_msg(tx, &states).await;
+            }
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+    }
 }
 
 async fn send_msg(tx: &OutBoundChannel, msg: &ServerMessage) {
