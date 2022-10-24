@@ -1,9 +1,16 @@
 use macroquad::prelude::*;
+use ws::Connection;
+mod ws;
 
 #[macroquad::main("game")]
 async fn main() {
+    let mut connection = Connection::new();
+    connection.connect("ws://localhost:3030/game");
     let mut game = Game::new().await;
     loop {
+        if let Some(msg) = connection.poll() {
+            println!("message received! {:?}", msg);
+        }
         game.update();
         game.draw();
         if game.quit {
