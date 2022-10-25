@@ -11,6 +11,12 @@ impl Connection {
         Self { socket: None }
     }
 
+    pub fn send(&mut self, msg: Vec<u8>) {
+        if let Some(socket) = &mut self.socket {
+            socket.write_message(Message::Binary(msg)).unwrap();
+        }
+    }
+
     pub fn connect(&mut self, url: &str) {
         if let Ok((mut socket, _)) = connect(url) {
             if let MaybeTlsStream::Plain(s) = socket.get_mut() {

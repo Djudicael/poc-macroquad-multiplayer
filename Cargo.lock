@@ -298,7 +298,10 @@ dependencies = [
 name = "game"
 version = "0.1.0"
 dependencies = [
+ "glam 0.22.0",
  "macroquad",
+ "serde_json",
+ "shared",
  "tungstenite",
 ]
 
@@ -328,6 +331,12 @@ name = "glam"
 version = "0.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "518faa5064866338b013ff9b2350dc318e14cc4fcd6cb8206d7e7c9886c98815"
+
+[[package]]
+name = "glam"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12f597d56c1bd55a811a1be189459e8fad2bbc272616375602443bdfb37fa774"
 dependencies = [
  "serde",
 ]
@@ -566,7 +575,7 @@ checksum = "19c4f0576d6468cb31de5ba0b3c8eb56cfd95ed3edfee380ac339309b4830074"
 dependencies = [
  "bumpalo",
  "fontdue",
- "glam",
+ "glam 0.21.3",
  "image",
  "macroquad_macro",
  "miniquad",
@@ -1025,11 +1034,12 @@ name = "server-warp"
 version = "0.1.0"
 dependencies = [
  "futures-util",
- "glam",
+ "glam 0.22.0",
  "log",
  "pretty_env_logger",
  "serde",
  "serde_json",
+ "shared",
  "tokio",
  "tokio-stream",
  "warp",
@@ -1055,6 +1065,14 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "digest",
+]
+
+[[package]]
+name = "shared"
+version = "0.1.0"
+dependencies = [
+ "glam 0.22.0",
+ "serde",
 ]
 
 [[package]]

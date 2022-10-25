@@ -1,2 +1,2 @@
 [workspace]
-members = ["game", "server-warp"]
+members = ["game", "server-warp", "shared"]

@@ -6,9 +6,7 @@ use std::{
     },
 };
 
-use glam::Vec2;
-
-use serde::{Deserialize, Serialize};
+use shared::{ClientMessage, RemoteState, ServerMessage};
 use tokio::sync::{mpsc, RwLock};
 use warp::{
     ws::{Message, WebSocket},
@@ -164,29 +162,4 @@ async fn send_msg(tx: &OutBoundChannel, msg: &ServerMessage) {
     let buffer = serde_json::to_vec(&msg).expect("Not possible to convert to binary");
     let msg = Message::binary(buffer);
     tx.send(Ok(msg)).expect("sending message failed");
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-pub struct State {
-    pub pos: Vec2,
-    pub r: f32,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-pub struct RemoteState {
-    pub id: usize,
-    pub position: Vec2,
-    pub rotation: f32,
-}
-
-#[derive(Deserialize, Serialize)]
-pub enum ServerMessage {
-    Welcome(usize),
-    GoodBye(usize),
-    Update(Vec<RemoteState>),
-}
-
-#[derive(Deserialize, Serialize)]
-pub enum ClientMessage {
-    State(State),
 }
