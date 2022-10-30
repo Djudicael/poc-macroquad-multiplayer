@@ -1,4 +1,4 @@
-use std::net::TcpStream;
+use std::{error::Error, io, net::TcpStream};
 
 use tungstenite::{connect, stream::MaybeTlsStream, Message, WebSocket};
 
@@ -11,18 +11,28 @@ impl Connection {
         Self { socket: None }
     }
 
-    pub fn send(&mut self, msg: Vec<u8>) {
-        if let Some(socket) = &mut self.socket {
-            socket.write_message(Message::Binary(msg)).unwrap();
-        }
+    pub fn send(&mut self, msg: Vec<u8>) -> Result<(), Box<dyn Error>> {
+        let socket = self
+            .socket
+            .as_mut()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::NotConnected, "No socket connection"))?;
+        socket.write_message(Message::Binary(msg))?;
+
+        Ok(())
     }
 
     pub fn connect(&mut self, url: &str) {
-        if let Ok((mut socket, _)) = connect(url) {
-            if let MaybeTlsStream::Plain(s) = socket.get_mut() {
-                s.set_nonblocking(true).unwrap();
+        match connect(url) {
+            Ok((mut socket, _)) => {
+                if let MaybeTlsStream::Plain(s) = socket.get_mut() {
+                    s.set_nonblocking(true).unwrap();
+                }
+                self.socket = Some(socket);
             }
-            self.socket = Some(socket);
+            Err(err) => {
+                log::error!("Failed to connect: {}, retrying...", err);
+                self.connect(url);
+            }
         }
     }
 

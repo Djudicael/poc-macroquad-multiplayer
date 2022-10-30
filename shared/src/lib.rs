@@ -26,7 +26,7 @@ impl RemoteState {
         self.id = id;
     }
     pub fn update_position(&mut self, x: f32, y: f32, speed: f32) {
-        self.position = self.position + Vec2::new(x, y) * speed;
+        self.position += Vec2::new(x, y) * speed;
     }
     pub fn rotation(&mut self, rotation: f32) {
         self.rotation = rotation;

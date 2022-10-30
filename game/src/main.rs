@@ -1,5 +1,8 @@
+use std::io;
+
 use macroquad::prelude::*;
 use shared::{ClientMessage, RemoteState, ServerMessage, State};
+use tungstenite::Error;
 use ws::Connection;
 mod ws;
 
@@ -7,6 +10,7 @@ const PLANE_WIDTH: f32 = 32.;
 const PLANE_HEIGHT: f32 = 32.;
 #[macroquad::main("game")]
 async fn main() {
+    pretty_env_logger::init();
     let mut connection = Connection::new();
     connection.connect("ws://localhost:3030/game");
     let mut game = Game::new().await;
@@ -34,7 +38,16 @@ async fn main() {
 }
 pub fn client_send(msg: &ClientMessage, connection: &mut Connection) {
     let bytes = serde_json::to_vec(msg).expect("serialization failed");
-    connection.send(bytes);
+    if let Err(err) = connection.send(bytes) {
+        log::error!("Failed to send msg: {}", err);
+
+        // if let Error::Io(err) = err {
+        //     if let io::ErrorKind::ConnectionReset | io::ErrorKind::ConnectionAborted = err.kind() {
+        //         log::error!("Connection lost, attempting to reconnect");
+        //         connection.connect("ws://localhost:3030/game");
+        //     }
+        // }
+    }
 }
 
 pub struct PlayerState {
@@ -62,7 +75,9 @@ pub fn vec2_from_angle(angle: f32) -> (f32, f32) {
 }
 impl Game {
     pub async fn new() -> Self {
-        let texture = load_texture("assets/planes.png").await.unwrap();
+        let texture = load_texture("assets/planes.png")
+            .await
+            .expect("Failed to load the plane texture!");
         Self {
             quit: false,
             remote_states: Vec::new(),
